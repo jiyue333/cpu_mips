@@ -22,7 +22,7 @@
 
 module aludec(
 	input wire[5:0] funct,
-	input wire[1:0] aluop,
+	input wire[4:0] aluop,
 	output reg[2:0] alucontrol
     );
 	always @(*) begin
