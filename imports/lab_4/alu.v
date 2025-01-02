@@ -19,21 +19,22 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+`include "../utils/defines2.vh"
 
 module alu(
 	input wire[31:0] a,b,
 	input wire[4:0] op,
-	output reg[31:0] result,
-    );
+	output reg[31:0] result
+);
 	always @(*) begin
 		case(op)
-			//逻辑运算8条
+			//逻辑运算8�?
 			`AND_CONTROL   :  result = a & b;  //指令AND、ANDI
 			`OR_CONTROL    :  result = a | b;  //指令OR、ORI
 			`XOR_CONTROL   :  result = a ^ b;  //指令XOR
 			`NOR_CONTROL   :  result = ~(a | b);  //指令NOR、XORI
 			`LUI_CONTROL   :  result = {b[15:0],16'b0}; //指令LUI
-			default        :  result = `ZeroWord;
+			default:  result <= 32'b0;
 		endcase
 	end
 endmodule

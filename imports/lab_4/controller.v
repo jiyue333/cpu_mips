@@ -65,8 +65,7 @@ module controller(
 		memtoregD,memwriteD,
 		branchD,alusrcD,
 		regdstD,regwriteD,
-		jumpD,
-		aluopD
+		jumpD
 		);
 	aludec ad(functD,opD,rsD,rtD,alucontrolD);
 
