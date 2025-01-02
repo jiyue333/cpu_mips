@@ -19,24 +19,32 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+`include "../utils/defines2.vh"
 
 module aludec(
 	input wire[5:0] funct,
-	input wire[4:0] aluop,
-	output reg[2:0] alucontrol
+	input wire[5:0] op,
+	input wire[4:0] rs,
+	input wire[4:0] rt,
+	output reg[4:0] alucontrol
     );
 	always @(*) begin
-		case (aluop)
-			2'b00: alucontrol <= 3'b010;//add (for lw/sw/addi)
-			2'b01: alucontrol <= 3'b110;//sub (for beq)
-			default : case (funct)
-				6'b100000:alucontrol <= 3'b010; //add
-				6'b100010:alucontrol <= 3'b110; //sub
-				6'b100100:alucontrol <= 3'b000; //and
-				6'b100101:alucontrol <= 3'b001; //or
-				6'b101010:alucontrol <= 3'b111; //slt
-				default:  alucontrol <= 3'b000;
-			endcase
+		case (op)
+			`R_TYPE:
+				case (funct)
+					//逻辑运算
+					`AND:		alucontrol = `AND_CONTROL;
+					`NOR:		alucontrol = `NOR_CONTROL;
+					`OR:		alucontrol = `OR_CONTROL;
+					`XOR:		alucontrol = `XOR_CONTROL;
+					default:  alucontrol   <= 5'b00000;
+				endcase
+			//逻辑运算
+			`ANDI:		alucontrol = `AND_CONTROL;
+			`LUI:		alucontrol = `LUI_CONTROL; 
+			`ORI:		alucontrol = `OR_CONTROL;
+			`XORI:		alucontrol = `XOR_CONTROL;
+			default:  alucontrol   <= 5'b00000;
 		endcase
 	
 	end
