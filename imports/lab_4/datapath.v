@@ -30,7 +30,7 @@ module datapath(
 	input wire jumpD,
 	output wire equalD,
 	output wire[5:0] opD,functD,
-	output [31:0] instrD,
+	output wire [31:0] instrD,
 	//execute stage
 	input wire memtoregE,
 	input wire alusrcE,regdstE,
@@ -52,7 +52,7 @@ module datapath(
 	//FD
 	wire [31:0] pcnextFD,pcnextbrFD,pcplus4F,pcbranchD;
 	//decode stage
-	wire [31:0] pcplus4D,instrD;
+	wire [31:0] pcplus4D;
 	wire forwardaD,forwardbD;
 	wire [4:0] rsD,rtD,rdD;
 	wire flushD,stallD; 
