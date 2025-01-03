@@ -44,6 +44,11 @@ module aludec(
 					`SRA:		alucontrol = `SRA_CONTROL;
 					`SRLV:		alucontrol = `SRLV_CONTROL;
 					`SRL:		alucontrol = `SRL_CONTROL;
+					//数据移动
+					`MFHI:      alucontrol = `MFHI_CONTROL;
+					`MTHI:      alucontrol = `MTHI_CONTROL;
+					`MFLO:      alucontrol = `MFLO_CONTROL;
+					`MTLO:      alucontrol = `MTLO_CONTROL;
 					default:  alucontrol   <= 5'b00000;
 				endcase
 			//逻辑运算

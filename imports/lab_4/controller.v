@@ -25,14 +25,13 @@ module controller(
 	//decode stage
 	input wire [31:0] instrD,
 	output wire pcsrcD,branchD,equalD,jumpD,
-	
 	//execute stage
 	input wire flushE,
 	output wire memtoregE,alusrcE,
 	output wire regdstE,regwriteE,	
 	output wire[4:0] alucontrolE,
 	output wire[4:0] saE,
-
+	output wire hilowirteE,
 	//mem stage
 	output wire memtoregM,memwriteM,
 				regwriteM,
@@ -42,7 +41,7 @@ module controller(
 	
 	//decode stage
 	wire memtoregD,memwriteD,alusrcD,
-		regdstD,regwriteD;
+		regdstD,regwriteD, hilowirteD;
 	wire[4:0] alucontrolD;
 		wire [5:0] opD;
 	wire [5:0] functD;
@@ -68,7 +67,8 @@ module controller(
 		memtoregD,memwriteD,
 		branchD,alusrcD,
 		regdstD,regwriteD,
-		jumpD
+		jumpD,
+		hilowirteD
 		);
 	aludec ad(functD,opD,rsD,rtD,alucontrolD);
 
@@ -79,8 +79,8 @@ module controller(
 		clk,
 		rst,
 		flushE,
-		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,saD,alucontrolD},
-		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,saE,alucontrolE}
+		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,saD,alucontrolD, hilowirteD},
+		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,saE,alucontrolE, hilowirteE}
 		);
 	flopr #(32) regM(
 		clk,rst,

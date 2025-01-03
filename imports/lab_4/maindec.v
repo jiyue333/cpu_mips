@@ -30,21 +30,23 @@ module maindec(
 	output wire memtoreg,memwrite,
 	output wire branch,alusrc,
 	output wire regdst,regwrite,
-	output wire jump
+	output wire jump,
+	output wire hilowirte
     );
-	reg[6:0] controls;
-	assign {regwrite,regdst,alusrc,branch,memwrite,memtoreg,jump} = controls;
+	reg[7:0] controls;
+	assign {regwrite,regdst,alusrc,branch,memwrite,memtoreg,jump,hilowirte} = controls;
 	always @(*) begin
 		case (op)
 			`R_TYPE: 
 			case(funct)
-            	default: controls <= 7'b1100000;	
+				`MTHI,`MTLO: 	controls <= 8'b00000001;
+            	default: 		controls <= 8'b11000000;	
 			endcase
-			`ANDI: controls <= 7'b1010000;
-        	`XORI: controls <= 7'b1010000;
-        	`LUI:  controls <= 7'b1010000;
-        	`ORI:  controls <= 7'b1010000;
-			default: controls <= 7'b0000000;
+			`ANDI: controls <= 8'b10100000;
+        	`XORI: controls <= 8'b10100000;
+        	`LUI:  controls <= 8'b10100000;
+        	`ORI:  controls <= 8'b10100000;
+			default: controls <= 8'b00000000;
 		endcase
 	end
 endmodule

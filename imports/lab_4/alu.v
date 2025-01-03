@@ -25,9 +25,12 @@ module alu(
 	input wire[31:0] a,b,
 	input wire[4:0] op,
 	input wire [4:0] sa,
-	output reg[31:0] result
+	input wire [63:0] hilo_in,
+	output reg[31:0] result,
+	output reg[63:0] hilo_out //用于写入HI、LO寄存器
 );
 	always @(*) begin
+		hilo_out = 64'b0;
 		case(op)
 			//閫昏緫杩愮畻8鏉?
 			`AND_CONTROL   :  result = a & b;  //鎸囦护AND銆丄NDI
@@ -42,6 +45,11 @@ module alu(
 			`SLLV_CONTROL  :  result = b << a[4:0];  //指令SLLV
 			`SRLV_CONTROL  :  result = b >> a[4:0];  //指令SRLV
 			`SRAV_CONTROL  :  result = $signed(b) >>> a[4:0]; //指令SRAV
+			//数据移动指令4条
+			`MFHI_CONTROL  :  result = hilo_in[63:32]; //指令MFHI
+			`MFLO_CONTROL  :  result = hilo_in[31:0]; //指令MFLO
+			`MTHI_CONTROL  :  hilo_out = {a,hilo_in[31:0]}; //指令MTHI
+			`MTLO_CONTROL  :  hilo_out = {hilo_in[63:32],a}; //指令MTLO
 			default:  result <= 32'b0;
 		endcase
 	end
