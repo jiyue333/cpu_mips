@@ -39,9 +39,12 @@ module maindec(
 		case (op)
 			`R_TYPE: 
 			case(funct)
+				`ADD,`ADDU,`SUB,`SUBU,`SLT,`SLTU,
+				`DIV,`DIVU,`MULT,`MULTU: controls <= 8'b11000000;
 				`MTHI,`MTLO: 	controls <= 8'b00000001;
             	default: 		controls <= 8'b11000000;	
 			endcase
+			`ADDI,`ADDIU,`SLTI,`SLTIU: controls <= 8'b10100000; 
 			`ANDI: controls <= 8'b10100000;
         	`XORI: controls <= 8'b10100000;
         	`LUI:  controls <= 8'b10100000;

@@ -49,6 +49,17 @@ module aludec(
 					`MTHI:      alucontrol = `MTHI_CONTROL;
 					`MFLO:      alucontrol = `MFLO_CONTROL;
 					`MTLO:      alucontrol = `MTLO_CONTROL;
+					//算术运算
+					`ADD:		alucontrol = `ADD_CONTROL;
+					`ADDU:		alucontrol = `ADDU_CONTROL;
+					`SUB:		alucontrol = `SUB_CONTROL;
+					`SUBU:		alucontrol = `SUBU_CONTROL;
+					`SLT:		alucontrol = `SLT_CONTROL;
+					`SLTU:		alucontrol = `SLTU_CONTROL;
+					`DIV:		alucontrol = `DIV_CONTROL;
+					`DIVU:		alucontrol = `DIVU_CONTROL;
+					`MULT:		alucontrol = `MULT_CONTROL;
+					`MULTU:		alucontrol = `MULTU_CONTROL;
 					default:  alucontrol   <= 5'b00000;
 				endcase
 			//逻辑运算
@@ -56,6 +67,11 @@ module aludec(
 			`LUI:		alucontrol = `LUI_CONTROL; 
 			`ORI:		alucontrol = `OR_CONTROL;
 			`XORI:		alucontrol = `XOR_CONTROL;
+			//算术运算
+			`ADDI:		alucontrol = `ADD_CONTROL;
+			`ADDIU:		alucontrol = `ADDU_CONTROL;
+			`SLTI:		alucontrol = `SLT_CONTROL;
+			`SLTIU:		alucontrol = `SLTU_CONTROL;
 
 			default:  alucontrol   <= 5'b00000;
 		endcase
