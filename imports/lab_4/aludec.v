@@ -74,13 +74,16 @@ module aludec(
 			`ADDIU:		alucontrol = `ADDU_CONTROL;
 			`SLTI:		alucontrol = `SLT_CONTROL;
 			`SLTIU:		alucontrol = `SLTU_CONTROL;
-				//跳转链接�?
+			//跳转链接�?
 			`REGIMM_INST:
 				case(rt)		
 					`BGEZAL, `BLTZAL:	alucontrol = `ADDU_CONTROL; //做加�?
 					default:    alucontrol = 5'b00000;
 				endcase	
 			`JAL : alucontrol = `ADDU_CONTROL; //做加�?
+
+			//??
+			`LB, `LBU, `LH, `LHU, `LW, `SB, `SH, `SW:	alucontrol = `ADDU_CONTROL;
 			default:  alucontrol   = 5'b00000;
 		endcase
 	

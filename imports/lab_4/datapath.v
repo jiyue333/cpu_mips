@@ -45,8 +45,9 @@ module datapath(
 	//mem stage
 	input wire memtoregM,
 	input wire regwriteM,
-	output wire[31:0] aluoutM,writedataM,
+	output wire[31:0] aluoutM,writedata_o,
 	input wire[31:0] readdataM,
+	output wire[3:0] selectM,
 	//writeback stage
 	input wire memtoregW,
 	input wire regwriteW
@@ -73,8 +74,11 @@ module datapath(
 	wire [31:0] aluoutE;
 	wire [63:0] hilo_read, hilo_write;//HILO读写数据
 	wire [31:0] pcE;
+	wire [5:0]opE;
 	//mem stage
 	wire [4:0] writeregM;
+	wire [31:0] writedataM, readdata_o;
+	wire [5:0] opM;
 	//writeback stage
 	wire [4:0] writeregW;
 	wire [31:0] aluoutW,readdataW,resultW;
@@ -144,11 +148,12 @@ module datapath(
 	floprc #(5) r5E(clk,rst,flushE,rtD,rtE);
 	floprc #(5) r6E(clk,rst,flushE,rdD,rdE);
 	floprc #(32) r7E(clk,rst,flushE,pcD,pcE);
+	floprc #(6) r8E(clk,rst,flushE,opD,opE);
 
 	mux3 #(32) forwardaemux(srcaE,resultW,aluoutM,forwardaE,srca2E);
 	mux3 #(32) forwardbemux(srcbE,resultW,aluoutM,forwardbE,srcb2E);
 	mux2 #(32) srcbmux(srcb2E,signimmE,alusrcE,srcb3E);
-	//跳转链接类指�?,复用ALU,ALU源操作数选择分别为pcE and 8
+	//跳转链接类指�??,复用ALU,ALU源操作数选择分别为pcE and 8
 	mux2 #(32) alusrcamux(srca2E,pcE,jbralE,srca3E);
 	mux2 #(32) alusrcbmux(srcb3E,32'h00000008,jbralE,srcb4E);
 	alu alu(srca3E,srcb4E,alucontrolE,saE,hilo_read,aluoutE,hilo_write);
@@ -160,10 +165,12 @@ module datapath(
 	flopr #(32) r1M(clk,rst,srcb2E,writedataM);
 	flopr #(32) r2M(clk,rst,aluoutE,aluoutM);
 	flopr #(5) r3M(clk,rst,writeregE,writeregM);
+	flopr #(6) r4M(clk,rst,opE,opM);
+	mem_ctrl mem_ctrl(opM,aluoutM[1:0],readdataM,writedataM,readdata_o,writedata_o,selectM);
 
 	//writeback stage
 	flopr #(32) r1W(clk,rst,aluoutM,aluoutW);
-	flopr #(32) r2W(clk,rst,readdataM,readdataW);
+	flopr #(32) r2W(clk,rst,readdata_o,readdataW);
 	flopr #(5) r3W(clk,rst,writeregM,writeregW);
 	mux2 #(32) resmux(aluoutW,readdataW,memtoregW,resultW);
 endmodule

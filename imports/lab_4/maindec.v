@@ -65,9 +65,11 @@ module maindec(
 					default: 	controls <= 11'b00000000000;
 				endcase
 			// J-type
-			`J:			controls <= 11'b00000010000;
-			`JAL:		controls <= 11'b10000010101;
-			default: 	controls <= 11'b00000000000;
+			`J:							controls <= 11'b00000010000;
+			`JAL:						controls <= 11'b10000010101;
+			`LB,`LBU,`LH,`LHU,`LW:		controls <= 11'b10100100000;
+			`SB,`SH,`SW:				controls <= 11'b00101000000;
+			default: 					controls <= 11'b00000000000;
 		endcase
 	end
 endmodule

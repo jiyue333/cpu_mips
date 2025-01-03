@@ -30,7 +30,7 @@
 // Revision: 1.0
 //////////////////////////////////////////////////////////////////////
 
-`include "defines.v"
+`include "../utils/defines2.vh"
 
 module div(
 
