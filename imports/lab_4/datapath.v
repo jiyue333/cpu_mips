@@ -31,6 +31,7 @@ module datapath(
 	output wire equalD,
 	output wire[5:0] opD,functD,
 	output wire [31:0] instrD,
+	input wire jrD,
 	//execute stage
 	input wire memtoregE,
 	input wire alusrcE,regdstE,
@@ -38,6 +39,8 @@ module datapath(
 	input wire[4:0] alucontrolE,
 	input wire[4:0] saE,
 	input wire hilowirteE,
+	input wire jalrE,
+	input wire jbralE,
 	output wire flushE,
 	//mem stage
 	input wire memtoregM,
@@ -52,7 +55,7 @@ module datapath(
 	//fetch stage
 	wire stallF;
 	//FD
-	wire [31:0] pcnextFD,pcnextbrFD,pcplus4F,pcbranchD;
+	wire [31:0] pcnextFD,pcnextbrFD,pcplus4F,pcbranchD,pc4branchjFD;
 	//decode stage
 	wire [31:0] pcplus4D;
 	wire forwardaD,forwardbD;
@@ -60,14 +63,16 @@ module datapath(
 	wire flushD,stallD; 
 	wire [31:0] signimmD,signimmshD;
 	wire [31:0] srcaD,srca2D,srcbD,srcb2D;
+	wire [31:0] pcD;
 	//execute stage
 	wire [1:0] forwardaE,forwardbE;
 	wire [4:0] rsE,rtE,rdE;
 	wire [4:0] writeregE;
 	wire [31:0] signimmE;
-	wire [31:0] srcaE,srca2E,srcbE,srcb2E,srcb3E;
+	wire [31:0] srcaE,srca2E,srca3E, srcbE,srcb2E,srcb3E,srcb4E;
 	wire [31:0] aluoutE;
 	wire [63:0] hilo_read, hilo_write;//HILO读写数据
+	wire [31:0] pcE;
 	//mem stage
 	wire [4:0] writeregM;
 	//writeback stage
@@ -100,10 +105,13 @@ module datapath(
 		);
 
 	//next PC logic (operates in fetch an decode)
+	// branch
 	mux2 #(32) pcbrmux(pcplus4F,pcbranchD,pcsrcD,pcnextbrFD);
-	mux2 #(32) pcmux(pcnextbrFD,
+	// jump
+	mux2 #(32) pcjumpmux(pcnextbrFD,
 		{pcplus4D[31:28],instrD[25:0],2'b00},
-		jumpD,pcnextFD);
+		jumpD,pc4branchjFD);
+	mux2 #(32) pc_jr_mux(pc4branchjFD,srca2D,jrD,pcnextFD);
 
 	//regfile (operates in decode and writeback)
 	regfile rf(clk,regwriteW,rsD,rtD,writeregW,resultW,srcaD,srcbD);
@@ -114,12 +122,13 @@ module datapath(
 	//decode stage
 	flopenr #(32) r1D(clk,rst,~stallD,pcplus4F,pcplus4D);
 	flopenrc #(32) r2D(clk,rst,~stallD,flushD,instrF,instrD);
+	flopenrc #(32) r3D(clk,rst,~stallD,flushD,pcF,pcD);
 	signext se(instrD[15:0], opD[3:2], signimmD);
 	sl2 immsh(signimmD,signimmshD);
 	adder pcadd2(pcplus4D,signimmshD,pcbranchD);
 	mux2 #(32) forwardamux(srcaD,aluoutM,forwardaD,srca2D);
 	mux2 #(32) forwardbmux(srcbD,aluoutM,forwardbD,srcb2D);
-	eqcmp comp(srca2D,srcb2D,equalD);
+	eqcmp comp(srca2D,srcb2D,opD,rtD,equalD);
 
 	assign opD = instrD[31:26];
 	assign functD = instrD[5:0];
@@ -134,13 +143,18 @@ module datapath(
 	floprc #(5) r4E(clk,rst,flushE,rsD,rsE);
 	floprc #(5) r5E(clk,rst,flushE,rtD,rtE);
 	floprc #(5) r6E(clk,rst,flushE,rdD,rdE);
+	floprc #(32) r7E(clk,rst,flushE,pcD,pcE);
 
 	mux3 #(32) forwardaemux(srcaE,resultW,aluoutM,forwardaE,srca2E);
 	mux3 #(32) forwardbemux(srcbE,resultW,aluoutM,forwardbE,srcb2E);
 	mux2 #(32) srcbmux(srcb2E,signimmE,alusrcE,srcb3E);
-	alu alu(srca2E,srcb3E,alucontrolE,saE,hilo_read,aluoutE,hilo_write);
+	//跳转链接类指�?,复用ALU,ALU源操作数选择分别为pcE and 8
+	mux2 #(32) alusrcamux(srca2E,pcE,jbralE,srca3E);
+	mux2 #(32) alusrcbmux(srcb3E,32'h00000008,jbralE,srcb4E);
+	alu alu(srca3E,srcb4E,alucontrolE,saE,hilo_read,aluoutE,hilo_write);
 	hilo_reg hilo(clk,rst,hilowirteE,hilo_write,hilo_read);	
-	mux2 #(5) wrmux(rtE,rdE,regdstE,writeregE);
+	// {jalr, regdst}
+	mux3 #(5) wrmux(rtE,rdE,5'd31,{jalrE, regdstE},writeregE);	
 
 	//mem stage
 	flopr #(32) r1M(clk,rst,srcb2E,writedataM);

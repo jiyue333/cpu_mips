@@ -31,25 +31,43 @@ module maindec(
 	output wire branch,alusrc,
 	output wire regdst,regwrite,
 	output wire jump,
-	output wire hilowirte
+	output wire hilowirte,
+	output wire jalr,
+	output wire jr,
+	output wire jbral
     );
-	reg[7:0] controls;
-	assign {regwrite,regdst,alusrc,branch,memwrite,memtoreg,jump,hilowirte} = controls;
+	reg[10:0] controls;
+
+	// jbral ?¦â?luæ¾¶å‹¯?å¤‹å«¨pcæ¶??8æµ£æ»€è´???æ’³å??
+	// jr é–«å¤‹å«¨ç?µå‹«ç“¨é?£ã„¤ç¶”æ¶“ç°†c??æ’³å??
+	// jalr ?‚æ?¿î–ƒ 5'd31 æ¶“è™¹æ´°é?¨å‹«??ç€›æ¨ºæ«’é?¦æ?¿æ½ƒ 
+	assign {regwrite,regdst,alusrc,branch,memwrite,memtoreg,jump,hilowirte,jalr,jr,jbral} = controls;
 	always @(*) begin
 		case (op)
 			`R_TYPE: 
 			case(funct)
-				`ADD,`ADDU,`SUB,`SUBU,`SLT,`SLTU,
-				`DIV,`DIVU,`MULT,`MULTU: controls <= 8'b11000000;
-				`MTHI,`MTLO: 	controls <= 8'b00000001;
-            	default: 		controls <= 8'b11000000;	
+				`ADD,`ADDU,`SUB,`SUBU,`SLT,`SLTU : 		controls <= 11'b11000000000;
+				`DIV,`DIVU,`MULT,`MULTU, `MTHI,`MTLO: 	controls <= 11'b00000001000;
+				`JR:									controls <= 11'b00000010010;
+				`JALR:									controls <= 11'b11000010011;
+				default: 								controls <= 11'b11000000000;	
 			endcase
-			`ADDI,`ADDIU,`SLTI,`SLTIU: controls <= 8'b10100000; 
-			`ANDI: controls <= 8'b10100000;
-        	`XORI: controls <= 8'b10100000;
-        	`LUI:  controls <= 8'b10100000;
-        	`ORI:  controls <= 8'b10100000;
-			default: controls <= 8'b00000000;
+			`ADDI,`ADDIU,`SLTI,`SLTIU: controls <= 11'b10100000000; 
+			`ANDI: controls <= 11'b10100000000;
+        	`XORI: controls <= 11'b10100000000;
+        	`LUI:  controls <= 11'b10100000000;
+        	`ORI:  controls <= 11'b10100000000;
+			`BEQ,`BNE,`BGTZ,`BLEZ:		controls <= 11'b00010000000;
+			`REGIMM_INST:
+				case (rt)
+					`BGEZ,`BLTZ:		controls <= 11'b00010000000;
+					`BGEZAL,`BLTZAL:	controls <= 11'b10010000101;
+					default: 	controls <= 11'b00000000000;
+				endcase
+			// J-type
+			`J:			controls <= 11'b00000010000;
+			`JAL:		controls <= 11'b10000010101;
+			default: 	controls <= 11'b00000000000;
 		endcase
 	end
 endmodule

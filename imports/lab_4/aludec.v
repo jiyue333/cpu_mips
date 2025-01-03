@@ -60,7 +60,9 @@ module aludec(
 					`DIVU:		alucontrol = `DIVU_CONTROL;
 					`MULT:		alucontrol = `MULT_CONTROL;
 					`MULTU:		alucontrol = `MULTU_CONTROL;
-					default:  alucontrol   <= 5'b00000;
+					//跳转指令      
+					`JALR:      alucontrol = `ADDU_CONTROL;
+					default:  alucontrol   = 5'b00000;
 				endcase
 			//逻辑运算
 			`ANDI:		alucontrol = `AND_CONTROL;
@@ -72,8 +74,14 @@ module aludec(
 			`ADDIU:		alucontrol = `ADDU_CONTROL;
 			`SLTI:		alucontrol = `SLT_CONTROL;
 			`SLTIU:		alucontrol = `SLTU_CONTROL;
-
-			default:  alucontrol   <= 5'b00000;
+				//跳转链接�?
+			`REGIMM_INST:
+				case(rt)		
+					`BGEZAL, `BLTZAL:	alucontrol = `ADDU_CONTROL; //做加�?
+					default:    alucontrol = 5'b00000;
+				endcase	
+			`JAL : alucontrol = `ADDU_CONTROL; //做加�?
+			default:  alucontrol   = 5'b00000;
 		endcase
 	
 	end
