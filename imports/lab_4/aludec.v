@@ -37,6 +37,13 @@ module aludec(
 					`NOR:		alucontrol = `NOR_CONTROL;
 					`OR:		alucontrol = `OR_CONTROL;
 					`XOR:		alucontrol = `XOR_CONTROL;
+					//移位
+					`SLLV:		alucontrol = `SLLV_CONTROL;
+					`SLL:		alucontrol = `SLL_CONTROL;
+					`SRAV:		alucontrol = `SRAV_CONTROL;
+					`SRA:		alucontrol = `SRA_CONTROL;
+					`SRLV:		alucontrol = `SRLV_CONTROL;
+					`SRL:		alucontrol = `SRL_CONTROL;
 					default:  alucontrol   <= 5'b00000;
 				endcase
 			//逻辑运算
@@ -44,6 +51,7 @@ module aludec(
 			`LUI:		alucontrol = `LUI_CONTROL; 
 			`ORI:		alucontrol = `OR_CONTROL;
 			`XORI:		alucontrol = `XOR_CONTROL;
+
 			default:  alucontrol   <= 5'b00000;
 		endcase
 	

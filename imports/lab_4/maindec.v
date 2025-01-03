@@ -38,7 +38,6 @@ module maindec(
 		case (op)
 			`R_TYPE: 
 			case(funct)
-            	32'b0: controls <= 7'b0000000;
             	default: controls <= 7'b1100000;	
 			endcase
 			`ANDI: controls <= 7'b1010000;

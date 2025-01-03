@@ -36,6 +36,7 @@ module datapath(
 	input wire alusrcE,regdstE,
 	input wire regwriteE,
 	input wire[4:0] alucontrolE,
+	input wire[4:0] saE,
 	output wire flushE,
 	//mem stage
 	input wire memtoregM,
@@ -135,7 +136,7 @@ module datapath(
 	mux3 #(32) forwardaemux(srcaE,resultW,aluoutM,forwardaE,srca2E);
 	mux3 #(32) forwardbemux(srcbE,resultW,aluoutM,forwardbE,srcb2E);
 	mux2 #(32) srcbmux(srcb2E,signimmE,alusrcE,srcb3E);
-	alu alu(srca2E,srcb3E,alucontrolE,aluoutE);
+	alu alu(srca2E,srcb3E,alucontrolE,saE,aluoutE);
 	mux2 #(5) wrmux(rtE,rdE,regdstE,writeregE);
 
 	//mem stage

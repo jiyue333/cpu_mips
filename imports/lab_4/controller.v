@@ -31,13 +31,13 @@ module controller(
 	output wire memtoregE,alusrcE,
 	output wire regdstE,regwriteE,	
 	output wire[4:0] alucontrolE,
+	output wire[4:0] saE,
 
 	//mem stage
 	output wire memtoregM,memwriteM,
 				regwriteM,
 	//write back stage
 	output wire memtoregW,regwriteW
-
     );
 	
 	//decode stage
@@ -48,11 +48,14 @@ module controller(
 	wire [5:0] functD;
 	wire [4:0] rsD;
 	wire [4:0] rtD;
+	wire [4:0] saD;
 
 	assign opD = instrD[31:26];
 	assign functD = instrD[5:0];
 	assign rsD = instrD[25:21];
 	assign rtD = instrD[20:16];
+	assign saD = instrD[10:6];
+
 
 	//execute stage
 	wire memwriteE;
@@ -72,19 +75,19 @@ module controller(
 	assign pcsrcD = branchD & equalD;
 
 	//pipeline registers
-	floprc #(16) regE(
+	floprc #(32) regE(
 		clk,
 		rst,
 		flushE,
-		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,alucontrolD},
-		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,alucontrolE}
+		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,saD,alucontrolD},
+		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,saE,alucontrolE}
 		);
-	flopr #(16) regM(
+	flopr #(32) regM(
 		clk,rst,
 		{memtoregE,memwriteE,regwriteE},
 		{memtoregM,memwriteM,regwriteM}
 		);
-	flopr #(16) regW(
+	flopr #(32) regW(
 		clk,rst,
 		{memtoregM,regwriteM},
 		{memtoregW,regwriteW}
