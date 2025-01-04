@@ -26,6 +26,7 @@ module controller(
 	input wire [31:0] instrD,
 	output wire pcsrcD,branchD,equalD,jumpD,
 	output wire jrD,
+	output wire breakD,syscallD,invalidD,eretD,jalrD,jbralD,
 	//execute stage
 	input wire flushE,
 	output wire memtoregE,alusrcE,
@@ -35,16 +36,21 @@ module controller(
 	output wire hilowirteE,
 	output wire jalrE, 
 	output wire jbralE,
+	output wire cp0readE,
 	//mem stage
+	input wire flushM,
 	output wire memtoregM,memwriteM,
 				regwriteM,
+	output wire cp0weM,
 	//write back stage
-	output wire memtoregW,regwriteW
+	input wire flushW,
+	output wire memtoregW,regwriteW,
+	output cp0weW
     );
 	
 	//decode stage
 	wire memtoregD,memwriteD,alusrcD,
-		regdstD,regwriteD,hilowirteD, jalrD, jbralD;
+		regdstD,regwriteD,hilowirteD;
 	wire[4:0] alucontrolD;
 		wire [5:0] opD;
 	wire [5:0] functD;
@@ -57,12 +63,15 @@ module controller(
 	assign rsD = instrD[25:21];
 	assign rtD = instrD[20:16];
 	assign saD = instrD[10:6];
-
+	wire cp0weD,cp0readD;
 
 	//execute stage
 	wire memwriteE;
+	wire cp0weE;
+	wire eretE;
 
 	maindec md(
+		instrD,
 		opD,
 		functD,
 		rsD,
@@ -74,7 +83,9 @@ module controller(
 		hilowirteD,
 		jalrD,
 		jrD,
-		jbralD
+		jbralD,
+		breakD,syscallD,
+        cp0weD,cp0readD,eretD,invalidD
 		);
 	aludec ad(functD,opD,rsD,rtD,alucontrolD);
 
@@ -85,17 +96,17 @@ module controller(
 		clk,
 		rst,
 		flushE,
-		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,saD,alucontrolD,hilowirteD,jalrD,jbralD},
-		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,saE,alucontrolE,hilowirteE,jalrE,jbralE}
+		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,saD,alucontrolD,hilowirteD,jalrD,jbralD,cp0weD,cp0readD,eretD},
+		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,saE,alucontrolE,hilowirteE,jalrE,jbralE,cp0weE,cp0readE,eretE}
 		);
-	flopr #(32) regM(
-		clk,rst,
-		{memtoregE,memwriteE,regwriteE},
-		{memtoregM,memwriteM,regwriteM}
+	floprc #(32) regM(
+		clk,rst,flushM,
+		{memtoregE,memwriteE,regwriteE,cp0weE},
+		{memtoregM,memwriteM,regwriteM,cp0weM}
 		);
-	flopr #(32) regW(
-		clk,rst,
-		{memtoregM,regwriteM},
-		{memtoregW,regwriteW}
+	floprc #(32) regW(
+		clk,rst,flushW,
+		{memtoregM,regwriteM,cp0weM},
+		{memtoregW,regwriteW,cp0weW}
 		);
 endmodule

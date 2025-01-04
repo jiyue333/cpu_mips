@@ -23,6 +23,7 @@
 
 
 module maindec(
+	input wire[31:0] instr,
 	input wire[5:0] op,
 	input wire[5:0] funct,
 	input wire[4:0] rs,
@@ -34,7 +35,9 @@ module maindec(
 	output wire hilowirte,
 	output wire jalr,
 	output wire jr,
-	output wire jbral
+	output wire jbral,
+	output wire break,syscall,cp0we,cp0read,eret,
+	output reg invalid
     );
 	reg[10:0] controls;
 
@@ -43,6 +46,7 @@ module maindec(
 	// jalr ?‚æ?¿î–ƒ 5'd31 æ¶“è™¹æ´°é?¨å‹«??ç€›æ¨ºæ«’é?¦æ?¿æ½ƒ 
 	assign {regwrite,regdst,alusrc,branch,memwrite,memtoreg,jump,hilowirte,jalr,jr,jbral} = controls;
 	always @(*) begin
+		invalid = 1'b0;
 		case (op)
 			`R_TYPE: 
 			case(funct)
@@ -50,6 +54,9 @@ module maindec(
 				`DIV,`DIVU,`MULT,`MULTU, `MTHI,`MTLO: 	controls <= 11'b00000001000;
 				`JR:									controls <= 11'b00000010010;
 				`JALR:									controls <= 11'b11000010011;
+				// todo 
+				`BREAK: controls <= 11'b11000010011;
+			    `SYSCALL: controls <= 11'b11000010011;
 				default: 								controls <= 11'b11000000000;	
 			endcase
 			`ADDI,`ADDIU,`SLTI,`SLTIU: controls <= 11'b10100000000; 
@@ -69,7 +76,25 @@ module maindec(
 			`JAL:						controls <= 11'b10000010101;
 			`LB,`LBU,`LH,`LHU,`LW:		controls <= 11'b10100100000;
 			`SB,`SH,`SW:				controls <= 11'b00101000000;
-			default: 					controls <= 11'b00000000000;
+			`SPECIAL3_INST:
+                case(instr[25:21])
+					// todo
+					`MFC0: 			controls <= 11'b10000000000;
+                    `MTC0,`ERET:	controls <= 11'b00000000000;
+                     default: invalid = 1; 
+                endcase
+			default:  begin
+				controls <= 11'b00000000000;
+				invalid = 1; 
+			end
 		endcase
 	end
+	// ????
+    assign break = (op == `R_TYPE && funct == `BREAK); 
+    assign syscall = (op == `R_TYPE && funct == `SYSCALL);
+              
+   // ????
+   assign cp0we = (instr[31:21] == 11'b0100_0000_100 && instr[10:0] == 11'b00000000000); //MTC0
+   assign cp0read = (instr[31:21] == 11'b01000000000 && instr[10:0] == 11'b00000000000); //MFC0 
+   assign eret = (instr == 32'b01000010000000000000000000011000); //ERET
 endmodule

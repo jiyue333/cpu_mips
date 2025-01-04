@@ -26,11 +26,13 @@ module alu(
 	input wire[4:0] op,
 	input wire [4:0] sa,
 	input wire [63:0] hilo_in,
+	input wire[31:0] cp0data, //读取的CP0寄存器的值
 	output reg[31:0] result,
-	output reg[63:0] hilo_out //用于写入HI、LO寄存器
+	output reg[63:0] hilo_out, //用于写入HI、LO寄存器
 	// output wire div_ready,  //除法是否完成
 	// output reg div_stall,   //除法的流水线暂停控制
-);
+	output wire overflow 	 //溢出判断 
+	);
 
 	//div
 	reg div_start;
@@ -38,7 +40,10 @@ module alu(
 	reg [31:0] a_save; 
 	reg [31:0] b_save;
 	wire [63:0] div_result;
-
+	wire addoverflow, suboverflow;
+ 	assign addoverflow = (a[31] && b[31] && !y[31]) || (!a[31 ]&& !b[31] && y[31]);
+    assign suboverflow = (a[31] && !b[31] && !y[31]) || (!a[31] && b[31] && y[31]);
+    assign overflow = ((alucontrol == `ADD_CONTROL) && addoverflow) || ((alucontrol == `SUB_CONTROL) && suboverflow);
 	always @(*) begin
 		hilo_out = 64'b0;
 		case(op)
@@ -61,7 +66,7 @@ module alu(
 			`MTHI_CONTROL  :  hilo_out = {a,hilo_in[31:0]}; //指令MTHI
 			`MTLO_CONTROL  :  hilo_out = {hilo_in[63:32],a}; //指令MTLO
 			//算数运算指令14条
-			`ADD_CONTROL   :  result = a + b; //指令ADD、ADDI
+			`ADD_CONTROL   :  result = $signed(a) - $signed(b);
 			`ADDU_CONTROL  :  result = a + b; //指令ADDU、ADDIU
 			`SUB_CONTROL   :  result = a - b; //指令SUB
 			`SUBU_CONTROL  :  result = a - b; //指令SUBU
@@ -71,6 +76,9 @@ module alu(
 			`MULTU_CONTROL :  hilo_out = {32'b0, a} * {32'b0, b}; //指令MULTU
 			`DIV_CONTROL   :  hilo_out = {$signed(a) % $signed(b), $signed(a) / $signed(b)};
 			`DIVU_CONTROL  :  hilo_out = {a % b, a / b}; 
+			//特权指令
+            `MTC0_CONTROL: result <= b;
+            `MFC0_CONTROL: result <= cp0data;
 			// `DIV_CONTROL   :  begin //指令DIV, 除法器控制状态机逻辑
 			// 	if(~div_ready & ~div_start) begin //~div_start : 为了保证除法进行过程中，除法源操作数不因ALU输入改变而重新被赋值
 			// 		//必须非阻塞赋值，否则时序不对

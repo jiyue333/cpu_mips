@@ -84,7 +84,13 @@ module aludec(
 
 			//??
 			`LB, `LBU, `LH, `LHU, `LW, `SB, `SH, `SW:	alucontrol = `ADDU_CONTROL;
-			default:  alucontrol   = 5'b00000;
+
+			`SPECIAL3_INST:
+                case(rs)
+                    `MTC0:alucontrol<=`MTC0_CONTROL;
+                    `MFC0:alucontrol<=`MFC0_CONTROL;
+                endcase
+			 default: 	alucontrol<=`AND_CONTROL;
 		endcase
 	
 	end
