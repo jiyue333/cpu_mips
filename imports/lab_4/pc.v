@@ -23,6 +23,7 @@
 module pc #(parameter WIDTH = 8)(
 	input wire clk,rst,en,flush,
 	input wire[WIDTH-1:0] d,
+	input wire[WIDTH-1:0] newpc,
 	output reg[WIDTH-1:0] q
     );
 

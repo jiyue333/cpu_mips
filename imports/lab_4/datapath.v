@@ -203,7 +203,7 @@ module datapath(
 	mux3 #(32) forwardaemux(srcaE,resultW,aluoutM,forwardaE,srca2E);
 	mux3 #(32) forwardbemux(srcbE,resultW,aluoutM,forwardbE,srcb2E);
 	mux2 #(32) srcbmux(srcb2E,signimmE,alusrcE,srcb3E);
-	//跳转链接类指�??,复用ALU,ALU源操作数选择分别为pcE and 8
+	//跳转链接类指�???,复用ALU,ALU源操作数选择分别为pcE and 8
 	mux2 #(32) alusrcamux(srca2E,pcE,jbralE,srca3E);
 	mux2 #(32) alusrcbmux(srcb3E,32'h00000008,jbralE,srcb4E);
 	alu alu(srca3E,srcb4E,alucontrolE,saE,hilo_read,cp0data2E, aluoutE,hilo_write,overflowE);
@@ -222,49 +222,11 @@ module datapath(
     flopenrc #(32) r9M(clk,rst,~0,flushM,pcE,pcM);
 	mem_ctrl mem_ctrl(opM,aluoutM[1:0],readdataM,writedataM,readdata_o,writedata_o,selectM);
 	assign bad_addrM = (instadelM)? pcM:aluoutM;
-    assign mem_enM = (~adelM & ~adesM)&(memreadM|memwriteM);
+    assign mem_enM = (~adelM & ~adesM);
 
-	exceptdec exception_inst (
-		.rst(rst),
-		.cp0weM(cp0weM),
-		.rdM(rdM),
-		.aluoutM(aluoutM),
-		.adelM(adelM),
-		.adesM(adesM),
-		.instadelM(instadelM),
-		.syscallM(syscallM),
-		.breakM(breakM),
-		.eretM(eretM),
-		.invalidM(invalidM),
-		.overflowM(overflowM),
-		.status_oM(status_oM),
-		.cause_oM(cause_oM),
-		.epc_oM(epc_oM),
-		.excepttypeM(excepttypeM),
-		.newpcM(newpcM)
-	);
-	cp0_reg CP0_inst (
-		.clk(clk),
-		.rst(rst),
-		.cp0weM(cp0weM),
-		.rdM(rdM),
-		.rdE(rdE),
-		.aluoutM(aluoutM),
-		.int_i(6'b000000),
-		.excepttype_i(excepttypeM),
-		.current_inst_addr_i(pcM),
-		.is_in_delayslot_i(is_in_delayslotM),
-		.bad_addr_i(bad_addrM),
-		.data_o(cp0dataE),
-		.count_o(count_oM),
-		.compare_o(compare_oM),
-		.status_o(status_oM),
-		.cause_o(cause_oM),
-		.epc_o(epc_oM),
-		.config_o(config_oM),
-		.prid_o(prid_oM),
-		.badvaddr(badvaddrM)
-	);
+	 exceptdec exception(rst,cp0weM,rdM,aluoutM,adelM,adesM,instadelM,syscallM,breakM,eretM,invalidM,overflowM,status_oM,cause_oM,epc_oM,excepttypeM,newpcM);
+ cp0_reg CP0(clk,rst,cp0weM,rdM,rdE,aluoutM,6'b000000,excepttypeM,pcM,is_in_delayslotM,
+    bad_addrM,cp0dataE,count_oM,compare_oM,status_oM,cause_oM,epc_oM,config_oM,prid_oM,badvaddrM);
 
 	//writeback stage
 	floprc #(32) r1W(clk,rst,flushW,aluoutM,aluoutW);

@@ -41,9 +41,9 @@ module alu(
 	reg [31:0] b_save;
 	wire [63:0] div_result;
 	wire addoverflow, suboverflow;
- 	assign addoverflow = (a[31] && b[31] && !y[31]) || (!a[31 ]&& !b[31] && y[31]);
-    assign suboverflow = (a[31] && !b[31] && !y[31]) || (!a[31] && b[31] && y[31]);
-    assign overflow = ((alucontrol == `ADD_CONTROL) && addoverflow) || ((alucontrol == `SUB_CONTROL) && suboverflow);
+ 	assign addoverflow = (a[31] && b[31] && !result[31]) || (!a[31 ]&& !b[31] && result[31]);
+    assign suboverflow = (a[31] && !b[31] && !result[31]) || (!a[31] && b[31] && result[31]);
+    assign overflow = ((op == `ADD_CONTROL) && addoverflow) || ((op == `SUB_CONTROL) && suboverflow);
 	always @(*) begin
 		hilo_out = 64'b0;
 		case(op)

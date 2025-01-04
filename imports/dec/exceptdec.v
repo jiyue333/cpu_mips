@@ -5,8 +5,8 @@ module exceptdec(
 	input wire rst,
 
     input wire cp0weW,
-    input wire [4:0]  waddrW,
-    input wire [31:0] wdataW,
+    input wire [4:0]waddrW,
+    input wire[31:0] wdataW,
 
     input wire adel,ades,
 	input wire instadel,syscall,break,eret,invalid,overflow,
