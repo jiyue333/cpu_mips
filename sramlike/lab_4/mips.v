@@ -22,13 +22,14 @@
 
 module mips(
 	input wire clk,rst,
+	input wire [5:0]ext_int,
 	output wire[31:0] pcF,
 	input wire[31:0] instrF,
 	output wire memwriteM,
 	output wire[31:0] aluoutM,writedataM,
 	input wire[31:0] readdataM, 
-	output wire[3:0] selectM
-
+	output wire[3:0] selectM,
+	output memreadM,
 	//for debug
     output [31:0] debug_wb_pc     ,
     output [3:0] debug_wb_rf_wen  ,
@@ -78,6 +79,7 @@ module mips(
 		memtoregM,memwriteM,
 		regwriteM,
 		cp0weM,
+		memreadM,
 		//write back stage
 		flushW,
 		memtoregW,regwriteW,
@@ -85,6 +87,7 @@ module mips(
 		);
 	datapath dp(
 		clk,rst,
+		ext_int,
 		//fetch stage
 		pcF,
 		instrF,
@@ -119,7 +122,11 @@ module mips(
 		memtoregW,
 		regwriteW,
 		cp0weW,
-		flushW
+		flushW,
+		debug_wb_pc,
+		debug_wb_rf_wen,
+		debug_wb_rf_wnum,
+		debug_wb_rf_wdata
 	    );
 	
 endmodule

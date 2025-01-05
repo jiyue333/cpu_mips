@@ -29,6 +29,7 @@ module hazard (
     input wire [4:0] rsD,
     input wire [4:0] rtD,
     input wire branchD,
+	input wire jumpD,
     output wire forwardaD,
     output wire forwardbD,
     output wire stallD,
@@ -55,7 +56,7 @@ module hazard (
     output wire flushM,
     input wire cp0weM,
     input wire [31:0] excepttypeM,
-	output flushexceptM,
+	input isexceptM,
     // Write back stage
     input wire [4:0] writeregW,
     input wire regwriteW,
@@ -99,21 +100,20 @@ module hazard (
 	assign forwardcp0E = ((cp0readE != 0) && cp0weM && rdM == rdE);
 
 	//stalls
-	assign #1 lwstallD = memtoregE & (rtE == rsD | rtE == rtD);
-	assign #1 branchstallD = branchD &
+	assign  lwstallD = memtoregE & (rtE == rsD | rtE == rtD);
+	assign  branchstallD = (branchD | jumpD) &
 				(regwriteE & 
 				(writeregE == rsD | writeregE == rtD) |
 				memtoregM &
 				(writeregM == rsD | writeregM == rtD));
-	assign #1 stallD = lwstallD | branchstallD;
-	assign #1 stallF = stallD;
+	assign  stallD = lwstallD | branchstallD;
+	assign  stallF = stallD;
 		//stalling D stalls all previous stages
-    assign #1 flushexceptM = (|excepttypeM);
-    assign flushF = flushexceptM;
-    assign flushD = flushexceptM;
-	assign flushE = flushexceptM;
-	assign flushM = flushexceptM;
-	assign flushW = flushexceptM;
+    assign flushF = isexceptM;
+    assign flushD = isexceptM;
+	assign flushE = isexceptM | lwstallD | branchstallD;
+	assign flushM = isexceptM;
+	assign flushW = isexceptM;
 		//stalling D flushes next stage
 	// Note: not necessary to stall D stage on store
   	//       if source comes from load;

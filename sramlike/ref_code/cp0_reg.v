@@ -16,9 +16,9 @@ module cp0_reg(
 	input wire[`RegBus] current_inst_addr_i,
 	input wire is_in_delayslot_i,
 	input wire[`RegBus] bad_addr_i,
-
+output reg [`RegBus] data_o,
 	output wire[`RegBus] count_o,
-	output reg [`RegBus] data_o,
+	
 	output reg [`RegBus] compare_o,
 	output reg [`RegBus] status_o,
 	output reg [`RegBus] cause_o,

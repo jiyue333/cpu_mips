@@ -37,13 +37,14 @@ module maindec(
 	output wire jr,
 	output wire jbral,
 	output wire break,syscall,cp0we,cp0read,eret,
-	output reg invalid
+	output reg invalid,
+	output wire memread
     );
 	reg[10:0] controls;
 
-	// jbral ?¦â?luæ¾¶å‹¯?å¤‹å«¨pcæ¶??8æµ£æ»€è´???æ’³å??
-	// jr é–«å¤‹å«¨ç?µå‹«ç“¨é?£ã„¤ç¶”æ¶“ç°†c??æ’³å??
-	// jalr ?‚æ?¿î–ƒ 5'd31 æ¶“è™¹æ´°é?¨å‹«??ç€›æ¨ºæ«’é?¦æ?¿æ½ƒ 
+	// jbral pc + 8 
+	// jr å¯„å­˜å™¨è·³è½¬ 
+	// jalr 5â€˜31å¯„å­˜å™¨é€‰æ‹© 
 	assign {regwrite,regdst,alusrc,branch,memwrite,memtoreg,jump,hilowirte,jalr,jr,jbral} = controls;
 	always @(*) begin
 		invalid = 1'b0;
@@ -51,7 +52,7 @@ module maindec(
 			`R_TYPE: 
 			case(funct)
 				`ADD,`ADDU,`SUB,`SUBU,`SLT,`SLTU : 		controls <= 11'b11000000000;
-				`DIV,`DIVU,`MULT,`MULTU, `MTHI,`MTLO: 	controls <= 11'b00000001000;
+				`DIV,`DIVU,`MULT,`MULTU,`MTHI,`MTLO: 	controls <= 11'b00000001000;
 				`JR:									controls <= 11'b00000010010;
 				`JALR:									controls <= 11'b11000010011;
 				// todo 
@@ -81,7 +82,10 @@ module maindec(
 					// todo
 					`MFC0: 			controls <= 11'b10000000000;
                     `MTC0,`ERET:	controls <= 11'b00000000000;
-                     default: invalid = 1; 
+                     default: begin
+						controls <= 11'b00000000000;
+						invalid = 1; 
+					 end
                 endcase
 			default:  begin
 				controls <= 11'b00000000000;
@@ -92,6 +96,7 @@ module maindec(
 	// ????
     assign break = (op == `R_TYPE && funct == `BREAK); 
     assign syscall = (op == `R_TYPE && funct == `SYSCALL);
+	assign memread = ((op == `LB)||(op==`LBU)||(op == `LH)||(op==`LHU)||(op == `LW));  
               
    // ????
    assign cp0we = (instr[31:21] == 11'b0100_0000_100 && instr[10:0] == 11'b00000000000); //MTC0
