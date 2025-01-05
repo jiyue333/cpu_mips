@@ -39,6 +39,6 @@ module pc #(parameter WIDTH = 8)(
 		else if(en)
 			q <= d;
 		else
-			q <= q;
+  	      	q <= q;
 	end
 endmodule

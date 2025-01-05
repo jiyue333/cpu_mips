@@ -42,6 +42,7 @@ module controller(
 	output wire memtoregM,memwriteM,
 				regwriteM,
 	output wire cp0weM,
+	output wire memreadM,
 	//write back stage
 	input wire flushW,
 	output wire memtoregW,regwriteW,
@@ -69,6 +70,8 @@ module controller(
 	wire memwriteE;
 	wire cp0weE;
 	wire eretE;
+	wire memreadE;
+	wire memreadM;
 
 	maindec md(
 		instrD,
@@ -85,7 +88,8 @@ module controller(
 		jrD,
 		jbralD,
 		breakD,syscallD,
-        cp0weD,cp0readD,eretD,invalidD
+        cp0weD,cp0readD,eretD,invalidD,
+		memreadD
 		);
 	aludec ad(functD,opD,rsD,rtD,alucontrolD);
 
@@ -96,13 +100,13 @@ module controller(
 		clk,
 		rst,
 		flushE,
-		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,saD,alucontrolD,hilowirteD,jalrD,jbralD,cp0weD,cp0readD,eretD},
-		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,saE,alucontrolE,hilowirteE,jalrE,jbralE,cp0weE,cp0readE,eretE}
+		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,saD,alucontrolD,hilowirteD,jalrD,jbralD,cp0weD,cp0readD,eretD, memreadD},	
+		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,saE,alucontrolE,hilowirteE,jalrE,jbralE,cp0weE,cp0readE,eretE, memreadE}
 		);
 	floprc #(32) regM(
 		clk,rst,flushM,
-		{memtoregE,memwriteE,regwriteE,cp0weE},
-		{memtoregM,memwriteM,regwriteM,cp0weM}
+		{memtoregE,memwriteE,regwriteE,cp0weE, memreadE},
+		{memtoregM,memwriteM,regwriteM,cp0weM, memreadM}
 		);
 	floprc #(32) regW(
 		clk,rst,flushW,

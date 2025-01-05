@@ -7,7 +7,9 @@ module mem_ctrl(
     input wire[31:0] writedata_i,
     output wire[31:0] readdata_o,
     output wire[31:0] writedata_o,
-    output wire[3:0] select
+    output wire[3:0] select,
+    output wire adel,
+    output wire ades
     );
     
     
@@ -44,6 +46,8 @@ module mem_ctrl(
     (op == `LBU && aluout == 2'b11)? {24'b0,readdata_i[31:24]}:
     32'b0);
         
+    assign adel = ((op == `LH || op == `LHU) && aluout[0]) || (op == `LW && aluout != 2'b00);
+    assign ades = (op == `SH & aluout[0]) | (op == `SW & aluout != 2'b00);
         
         
 endmodule
