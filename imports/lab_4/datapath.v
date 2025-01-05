@@ -118,6 +118,7 @@ module datapath(
 		.rsD(rsD),
 		.rtD(rtD),
 		.branchD(branchD),
+		.jumpD(jumpD),
 		.forwardaD(forwardaD),
 		.forwardbD(forwardbD),
 		.stallD(stallD),

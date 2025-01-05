@@ -29,6 +29,7 @@ module hazard (
     input wire [4:0] rsD,
     input wire [4:0] rtD,
     input wire branchD,
+	input wire jumpD,
     output wire forwardaD,
     output wire forwardbD,
     output wire stallD,
@@ -100,7 +101,7 @@ module hazard (
 
 	//stalls
 	assign #1 lwstallD = memtoregE & (rtE == rsD | rtE == rtD);
-	assign #1 branchstallD = (branchD | jrD) &
+	assign #1 branchstallD = (branchD | jumpD) &
 				(regwriteE & 
 				(writeregE == rsD | writeregE == rtD) |
 				memtoregM &

@@ -28,12 +28,12 @@ module pc #(parameter WIDTH = 8)(
     );
 
 	initial begin
-    	q<=32'hbfc00000;
+    	q<=32'h0;
 	end
 
 	always @(posedge clk) begin
 		if(rst)
-			q <= 32'hbfc00000;
+			q <= 32'h0;
 		else if(flush)
 			q <= newpc;
 		else if(en)
