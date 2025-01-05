@@ -112,10 +112,10 @@ module hazard (
     assign #1 flushexceptM = (|excepttypeM);
     assign flushF = flushexceptM;
     assign flushD = flushexceptM;
-	assign flushE = flushexceptM;
+	assign flushE = flushexceptM | lwstallD | branchstallD;
 	assign flushM = flushexceptM;
 	assign flushW = flushexceptM;
-		//stalling D flushes next stage
+	//stalling D flushes next stage
 	// Note: not necessary to stall D stage on store
   	//       if source comes from load;
   	//       instead, another bypass network could
