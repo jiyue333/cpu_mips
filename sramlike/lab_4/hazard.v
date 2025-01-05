@@ -110,7 +110,7 @@ module hazard (
 				(writeregM == rsD | writeregM == rtD));
 	assign stallD = lwstallD | branchstallD | div_stallE;
 	// todo ~isexceptM & stallD
-	assign stallF = stallD;
+	assign stallF = stallD & ~isexceptM;
 	assign stallE = div_stallE;
 	//stalling D stalls all previous stages
     assign flushF = isexceptM;

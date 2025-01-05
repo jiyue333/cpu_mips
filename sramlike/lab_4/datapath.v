@@ -234,7 +234,7 @@ module datapath(
 	//跳转链接类指�???,复用ALU,ALU源操作数选择分别为pcE and 8
 	mux2 #(32) alusrcamux(srca2E,pcE,jbralE,srca3E);
 	mux2 #(32) alusrcbmux(srcb3E,32'h00000008,jbralE,srcb4E);
-	alu alu(srca3E,srcb4E,alucontrolE,saE,hilo_read,cp0data2E,isexceptM,aluoutE,hilo_write,div_readyE,div_stallE,overflowE);
+	alu alu(clk, rst, srca3E,srcb4E,alucontrolE,saE,hilo_read,cp0data2E,isexceptM,aluoutE,hilo_write,div_readyE,div_stallE,overflowE);
 	assign hilo_write2E = (alucontrolE == `DIV_CONTROL | alucontrolE == `DIVU_CONTROL) ? 
 							(div_readyE & hilowirteE) : (hilowirteE); 
 	hilo_reg hilo(clk,rst,(hilo_write2E & ~isexceptM),hilo_write,hilo_read);	
@@ -254,7 +254,7 @@ module datapath(
 	assign bad_addrM = (instadelM)? pcM:aluoutM;
     assign mem_enM = (~adelM & ~adesM);
 
-	exceptdec exception(rst,ext_int, cp0weM,rdM,aluoutM,adelM,adesM,instadelM,syscallM,breakM,eretM,invalidM,overflowM,status_oM,cause_oM,epc_oM,excepttypeM,newpcM,isexceptM);
+	exceptdec exception(clk, rst,ext_int,cp0weM,rdM,aluoutM,adelM,adesM,instadelM,syscallM,breakM,eretM,invalidM,overflowM,status_oM,cause_oM,epc_oM,excepttypeM,newpcM,isexceptM);
  	cp0_reg CP0(clk,rst,cp0weM,rdM,rdE,aluoutM,6'b000000,excepttypeM,pcM,is_in_delayslotM,
     bad_addrM,cp0dataE,count_oM,compare_oM,status_oM,cause_oM,epc_oM,config_oM,prid_oM,badvaddrM);
 

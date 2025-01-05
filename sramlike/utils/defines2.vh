@@ -192,3 +192,5 @@
 `define CP0_REG_EPC    5'b01110          
 `define CP0_REG_PRID    5'b01111         
 `define CP0_REG_CONFIG    5'b10000       
+
+`define ZeroWord		32'h00000000

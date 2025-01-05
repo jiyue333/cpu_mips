@@ -44,6 +44,7 @@ module alu(
 	wire [63:0] div_result;
 	reg double_sign; //凑运算结果的双符号位，处理整型溢出
 	assign overflow = (op==`ADD_CONTROL || op==`SUB_CONTROL) & (double_sign ^ result[31]); 
+
 	always @(*) begin
 		double_sign = 0;
 		hilo_out = 64'b0;
@@ -61,7 +62,7 @@ module alu(
 			//移位指令6条
 			`SLL_CONTROL   :  result = b << sa;  //指令SLL
 			`SRL_CONTROL   :  result = b >> sa;  //指令SRL
-			`SRA_CONTROL   :  result = ({32{b[31]}} << (6'd32-{1'b0, sa})) | b >> sa;  //指令SRA
+			`SRA_CONTROL   :  result = $signed(b) >>> sa;  //指令SRA
 			`SLLV_CONTROL  :  result = b << a[4:0];  //指令SLLV
 			`SRLV_CONTROL  :  result = b >> a[4:0];  //指令SRLV
 			`SRAV_CONTROL  :  result = $signed(b) >>> a[4:0]; //指令SRAV
@@ -114,6 +115,7 @@ module alu(
 			//特权指令
             `MTC0_CONTROL: result = b;
             `MFC0_CONTROL: result = cp0data;
+			default        :  result = `ZeroWord;
 		endcase
 	end
 	wire annul; //终止除法信号

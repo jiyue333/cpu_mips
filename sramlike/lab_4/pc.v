@@ -31,7 +31,7 @@ module pc #(parameter WIDTH = 8)(
     	q<=32'hbfc00000;
 	end
 
-	always @(posedge clk) begin
+	always @(posedge clk, posedge rst) begin
 		if(rst)
 			q <= 32'hbfc00000;
 		else if(flush)
