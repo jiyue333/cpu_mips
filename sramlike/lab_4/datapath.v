@@ -19,6 +19,8 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+`include "../utils/defines2.vh"
+
 
 module datapath(
 	input wire clk,rst,
@@ -44,6 +46,7 @@ module datapath(
 	input wire jalrE,
 	input wire jbralE,
 	output wire flushE,
+	output wire stallE,
 	input wire cp0readE,
 	//mem stage
 	input wire memtoregM,
@@ -109,6 +112,9 @@ module datapath(
 	wire breakE,syscallE,invalidE,eretE;
 	wire instadelE,is_in_delayslotE;
 	wire [31:0]cp0dataE,cp0data2E;
+	wire div_stallE;
+	wire div_readyE;
+	wire hilo_write2E;
 	//mem stage
 	wire [4:0] writeregM;
 	wire [31:0] writedataM, readdata_o;
@@ -152,6 +158,8 @@ module datapath(
 		.memtoregE(memtoregE),
 		.forwardaE(forwardaE),
 		.forwardbE(forwardbE),
+		.div_stallE(div_stallE),
+		.stallE(stallE),
 		.flushE(flushE),
 		.cp0readE(cp0readE),
 		.forwardcp0E(forwardcp0E),
@@ -209,16 +217,16 @@ module datapath(
 	assign rdD = instrD[15:11];
 
 	//execute stage
-	floprc #(32) r1E(clk,rst,flushE,srcaD,srcaE);
-	floprc #(32) r2E(clk,rst,flushE,srcbD,srcbE);
-	floprc #(32) r3E(clk,rst,flushE,signimmD,signimmE);
-	floprc #(5) r4E(clk,rst,flushE,rsD,rsE);
-	floprc #(5) r5E(clk,rst,flushE,rtD,rtE);
-	floprc #(5) r6E(clk,rst,flushE,rdD,rdE);
-	floprc #(32) r7E(clk,rst,flushE,pcD,pcE);
-	floprc #(6) r8E(clk,rst,flushE,opD,opE);
-	floprc #(32) r10E(clk,rst,flushE,{instadelD,syscallD,breakD,eretD,invalidD},{instadelE,syscallE,breakE,eretE,invalidE});
-    floprc #(1) r11E(clk,rst,flushE,is_in_delayslotD,is_in_delayslotE);
+	flopenrc #(32) r1E(clk,rst,~stallE,flushE,srcaD,srcaE);
+	flopenrc #(32) r2E(clk,rst,~stallE,flushE,srcbD,srcbE);
+	flopenrc #(32) r3E(clk,rst,~stallE,flushE,signimmD,signimmE);
+	flopenrc #(5) r4E(clk,rst,~stallE,flushE,rsD,rsE);
+	flopenrc #(5) r5E(clk,rst,~stallE,flushE,rtD,rtE);
+	flopenrc #(5) r6E(clk,rst,~stallE,flushE,rdD,rdE);
+	flopenrc #(32) r7E(clk,rst,~stallE,flushE,pcD,pcE);
+	flopenrc #(6) r8E(clk,rst,~stallE,flushE,opD,opE);
+	flopenrc #(32) r10E(clk,rst,~stallE,flushE,{instadelD,syscallD,breakD,eretD,invalidD},{instadelE,syscallE,breakE,eretE,invalidE});
+    flopenrc #(1) r11E(clk,rst,~stallE,flushE,is_in_delayslotD,is_in_delayslotE);
 
 	mux3 #(32) forwardaemux(srcaE,resultW,aluoutM,forwardaE,srca2E);
 	mux3 #(32) forwardbemux(srcbE,resultW,aluoutM,forwardbE,srcb2E);
@@ -226,8 +234,10 @@ module datapath(
 	//跳转链接类指�???,复用ALU,ALU源操作数选择分别为pcE and 8
 	mux2 #(32) alusrcamux(srca2E,pcE,jbralE,srca3E);
 	mux2 #(32) alusrcbmux(srcb3E,32'h00000008,jbralE,srcb4E);
-	alu alu(srca3E,srcb4E,alucontrolE,saE,hilo_read,cp0data2E,isexceptM,aluoutE,hilo_write,overflowE);
-	hilo_reg hilo(clk,rst,(hilowirteE & ~isexceptM),hilo_write,hilo_read);	
+	alu alu(srca3E,srcb4E,alucontrolE,saE,hilo_read,cp0data2E,isexceptM,aluoutE,hilo_write,div_readyE,div_stallE,overflowE);
+	assign hilo_write2E = (alucontrolE == `DIV_CONTROL | alucontrolE == `DIVU_CONTROL) ? 
+							(div_readyE & hilowirteE) : (hilowirteE); 
+	hilo_reg hilo(clk,rst,(hilo_write2E & ~isexceptM),hilo_write,hilo_read);	
 	// {jalr, regdst}
 	mux3 #(5) wrmux(rtE,rdE,5'd31,{jalrE, regdstE},writeregE);	
  	mux2 #(32) forwardcp0mux(cp0dataE,aluoutM,forwardcp0E,cp0data2E);

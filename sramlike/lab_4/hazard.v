@@ -44,6 +44,8 @@ module hazard (
     input wire memtoregE,
     output reg [1:0] forwardaE,
     output reg [1:0] forwardbE,
+	input wire div_stallE,
+	output wire stallE,
     output wire flushE,
     input wire cp0readE,
     output wire forwardcp0E,
@@ -106,13 +108,15 @@ module hazard (
 				(writeregE == rsD | writeregE == rtD) |
 				memtoregM &
 				(writeregM == rsD | writeregM == rtD));
-	assign  stallD = lwstallD | branchstallD;
-	assign  stallF = stallD;
-		//stalling D stalls all previous stages
+	assign stallD = lwstallD | branchstallD | div_stallE;
+	// todo ~isexceptM & stallD
+	assign stallF = stallD;
+	assign stallE = div_stallE;
+	//stalling D stalls all previous stages
     assign flushF = isexceptM;
     assign flushD = isexceptM;
 	assign flushE = isexceptM | lwstallD | branchstallD;
-	assign flushM = isexceptM;
+	assign flushM = isexceptM | div_stallE;
 	assign flushW = isexceptM;
 		//stalling D flushes next stage
 	// Note: not necessary to stall D stage on store

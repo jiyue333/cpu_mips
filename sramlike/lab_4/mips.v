@@ -43,6 +43,7 @@ module mips(
 			regwriteE,regwriteM,regwriteW;
 	wire [4:0] alucontrolE;
 	wire flushE,equalD;
+	wire stallE;
 	wire [31:0] instrD;
 	wire [4:0] saE;
 	wire hilowirteE;
@@ -66,6 +67,7 @@ module mips(
 		breakD,syscallD,invalidD,eretD,jalrD,jbralD,
 		//execute stage
 		flushE,
+		stallE,
 		memtoregE,alusrcE,
 		regdstE,regwriteE,	
 		alucontrolE,
@@ -109,6 +111,7 @@ module mips(
 		jalrE,
 		jbralE,
 		flushE,
+		stallE,
 		cp0readE,
 		//mem stage
 		memtoregM,
