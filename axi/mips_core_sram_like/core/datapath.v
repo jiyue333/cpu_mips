@@ -61,6 +61,7 @@ module datapath(
 	output wire flushM,
 	output wire stallM,
 	output wire mem_enM,
+	input wire memreadM, memwriteM,
 	//writeback stage
 	input wire memtoregW,
 	input wire regwriteW,
@@ -264,7 +265,7 @@ module datapath(
 	flopenrc #(32) r9M(clk,rst,~stallM,flushM,pcE,pcM);
 	mem_ctrl mem_ctrl(opM,aluoutM[1:0],readdataM,writedataM,readdata_o,writedata_o,selectM, adelM, adesM);
 	assign bad_addrM = (instadelM)? pcM:aluoutM;
-    assign mem_enM = (~adelM & ~adesM);
+    assign mem_enM = (~adelM & ~adesM)&(memreadM|memwriteM);
 
 	wire [31:0] current_inst_addr;
 	flopr #(32) except_inst_addr(clk,rst,pcE,current_inst_addr);	

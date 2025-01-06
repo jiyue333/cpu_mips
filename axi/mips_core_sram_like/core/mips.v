@@ -33,7 +33,7 @@ module mips(
 	output wire[31:0] aluoutM,writedataM,
 	input wire[31:0] readdataM, 
 	output wire[3:0] selectM,
-	output wire memreadM,
+	// output wire memreadM,
 	output wire mem_enM,
 	output wire longest_stall,
 	//for debug
@@ -65,6 +65,8 @@ module mips(
     wire flushW;
 	wire cp0weW;
 	wire cp0weM;
+	wire memwriteM;
+	wire memreadM;
 
 	controller c(
 		clk,rst,
@@ -137,6 +139,7 @@ module mips(
 		flushM,
 		stallM,
 		mem_enM,
+		memreadM,memwriteM,
 		//writeback stage
 		memtoregW,
 		regwriteW,
