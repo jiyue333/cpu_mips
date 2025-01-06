@@ -43,8 +43,8 @@ module maindec(
 	reg[10:0] controls;
 
 	// jbral pc + 8 
-	// jr å¯„å­˜å™¨è·³è½? 
-	// jalr 5â€?31å¯„å­˜å™¨é?‰æ‹© 
+	// jr ????? 
+	// jalr 5‘31????? 
 	assign {regwrite,regdst,alusrc,branch,memwrite,memtoreg,jump,hilowirte,jalr,jr,jbral} = controls;
 	always @(*) begin
 		invalid = 1'b0;

@@ -49,7 +49,6 @@ module mips_with_sram_like (
     wire dataStall                ;
 
     wire longest_stall;
-    wire memreadM;
 
 mips mips_core(
     .clk(clk),.rst(rst),.ext_int(ext_int),
@@ -67,7 +66,6 @@ mips mips_core(
     .writedataM(data_sram_wdata),
     .mem_enM(data_sram_en),
     .selectM(data_sram_wen),
-    .memreadM(memreadM),
 
     .longest_stall(longest_stall),
 

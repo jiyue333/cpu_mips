@@ -61,6 +61,7 @@ module datapath(
 	output wire flushM,
 	output wire stallM,
 	output wire mem_enM,
+	input wire memreadM, memwriteM,
 	//writeback stage
 	input wire memtoregW,
 	input wire regwriteW,
@@ -77,6 +78,7 @@ module datapath(
 
 //----------------------------------------------for debug begin----------------------------------------------------	
     wire [31:0] pcW;
+	wire [31:0] pcM;
    	wire [31:0] instrE,instrM,instrW;
     flopenrc #(32) rinstrE(clk,rst,~stallE, flushE, instrD,instrE);
     flopenrc #(32) rinstrM(clk,rst,~stallM, flushM, instrE,instrM);
@@ -133,7 +135,7 @@ module datapath(
 	// pc指令地址是否对齐
 	wire instadelM;
 	wire [31:0] bad_addrM;
-	wire [31:0] pcM,newpcM;
+	wire [31:0] newpcM;
 	wire is_in_delayslotM;
 	wire [31:0] excepttypeM,count_oM,compare_oM,status_oM,cause_oM,epc_oM, config_oM,prid_oM,badvaddrM;
 	//writeback stage
@@ -264,7 +266,7 @@ module datapath(
 	flopenrc #(32) r9M(clk,rst,~stallM,flushM,pcE,pcM);
 	mem_ctrl mem_ctrl(opM,aluoutM[1:0],readdataM,writedataM,readdata_o,writedata_o,selectM, adelM, adesM);
 	assign bad_addrM = (instadelM)? pcM:aluoutM;
-    assign mem_enM = (~adelM & ~adesM);
+    assign mem_enM = (~adelM & ~adesM)&(memreadM|memwriteM);
 
 	wire [31:0] current_inst_addr;
 	flopr #(32) except_inst_addr(clk,rst,pcE,current_inst_addr);	
