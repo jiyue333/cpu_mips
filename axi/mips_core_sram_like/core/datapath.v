@@ -28,6 +28,9 @@ module datapath(
 	input wire instrStall,
 	input wire dataStall,
 	output wire longest_stall,
+	input wire instrStall,
+	input wire dataStall,
+	output wire longest_stall,
 	//fetch stage
 	output wire[31:0] pcF,
 	input wire[31:0] instrF,
@@ -83,7 +86,6 @@ module datapath(
     flopenrc #(32) rinstrM(clk,rst,~stallM, flushM, instrE,instrM);
     flopenrc #(32) rinstrW(clk,rst,~stallW, flushW, instrM,instrW); 
     flopenrc #(32) rpcW(clk,rst,~stallW, flushW, pcM,pcW);
-
 
     assign debug_wb_pc          = pcW;
     assign debug_wb_rf_wen      = {4{regwriteW & ~stallW}};
