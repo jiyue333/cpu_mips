@@ -43,22 +43,27 @@ module maindec(
 	reg[10:0] controls;
 
 	// jbral pc + 8 
-	// jr 寄存器跳转 
-	// jalr 5‘31寄存器选择 
+	// jr 寄存器跳�? 
+	// jalr 5�?31寄存器�?�择 
 	assign {regwrite,regdst,alusrc,branch,memwrite,memtoreg,jump,hilowirte,jalr,jr,jbral} = controls;
 	always @(*) begin
 		invalid = 1'b0;
 		case (op)
 			`R_TYPE: 
 			case(funct)
-				`ADD,`ADDU,`SUB,`SUBU,`SLT,`SLTU : 		controls <= 11'b11000000000;
+				`ADD,`ADDU,`SUB,`SUBU,`SLT,`SLTU,
+				`AND,`NOR,`OR,`XOR,
+				`SLLV,`SLL,`SRAV,`SRA,`SRLV,`SRL,`MFHI,`MFLO: controls <= 11'b11000000000;
 				`DIV,`DIVU,`MULT,`MULTU,`MTHI,`MTLO: 	controls <= 11'b00000001000;
 				`JR:									controls <= 11'b00000010010;
 				`JALR:									controls <= 11'b11000010011;
 				// todo 
 				`BREAK: controls <= 11'b11000010011;
 			    `SYSCALL: controls <= 11'b11000010011;
-				default: 								controls <= 11'b11000000000;	
+				default: begin 								
+					controls <= 11'b00000000000;	
+					invalid = 1;
+				end
 			endcase
 			`ADDI,`ADDIU,`SLTI,`SLTIU: controls <= 11'b10100000000; 
 			`ANDI: controls <= 11'b10100000000;
@@ -70,7 +75,10 @@ module maindec(
 				case (rt)
 					`BGEZ,`BLTZ:		controls <= 11'b00010000000;
 					`BGEZAL,`BLTZAL:	controls <= 11'b10010000101;
-					default: 	controls <= 11'b00000000000;
+					default: begin 	
+						controls <= 11'b00000000000;
+						invalid = 1;
+					end
 				endcase
 			// J-type
 			`J:							controls <= 11'b00000010000;

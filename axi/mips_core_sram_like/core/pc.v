@@ -27,10 +27,6 @@ module pc #(parameter WIDTH = 8)(
 	output reg[WIDTH-1:0] q
     );
 
-	initial begin
-    	q<=32'hbfc00000;
-	end
-
 	always @(posedge clk, posedge rst) begin
 		if(rst)
 			q <= 32'hbfc00000;
@@ -38,7 +34,5 @@ module pc #(parameter WIDTH = 8)(
 			q <= newpc;
 		else if(en)
 			q <= d;
-		else
-  	      	q <= q;
 	end
 endmodule
