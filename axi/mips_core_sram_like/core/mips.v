@@ -25,11 +25,17 @@ module mips(
 	input wire [5:0]ext_int,
 	output wire[31:0] pcF,
 	input wire[31:0] instrF,
-	output wire memwriteM,
+	output wire instr_enF,
+	input wire instrStall,
+
+	input wire dataStall,
+	// output wire memwriteM, 
 	output wire[31:0] aluoutM,writedataM,
 	input wire[31:0] readdataM, 
 	output wire[3:0] selectM,
-	output memreadM,
+	output wire memreadM,
+	output wire mem_enM,
+	output wire longest_stall,
 	//for debug
     output [31:0] debug_wb_pc     ,
     output [3:0] debug_wb_rf_wen  ,
@@ -44,6 +50,8 @@ module mips(
 	wire [4:0] alucontrolE;
 	wire flushE,equalD;
 	wire stallE;
+	wire stallM;
+	wire stallW;
 	wire [31:0] instrD;
 	wire [4:0] saE;
 	wire hilowirteE;
@@ -77,12 +85,14 @@ module mips(
 		jbralE,
 		cp0readE,
 		//mem stage
+		stallM,
 		flushM,
 		memtoregM,memwriteM,
 		regwriteM,
 		cp0weM,
 		memreadM,
 		//write back stage
+		stallW,
 		flushW,
 		memtoregW,regwriteW,
 		cp0weW
@@ -90,9 +100,13 @@ module mips(
 	datapath dp(
 		clk,rst,
 		ext_int,
+		instrStall,
+		dataStall,
+		longest_stall,
 		//fetch stage
 		pcF,
 		instrF,
+		instr_enF,
 		//decode stage
 		pcsrcD,branchD,
 		jumpD,
@@ -121,11 +135,14 @@ module mips(
 		selectM,
 		cp0weM,
 		flushM,
+		stallM,
+		mem_enM,
 		//writeback stage
 		memtoregW,
 		regwriteW,
 		cp0weW,
 		flushW,
+		stallW,
 		debug_wb_pc,
 		debug_wb_rf_wen,
 		debug_wb_rf_wnum,

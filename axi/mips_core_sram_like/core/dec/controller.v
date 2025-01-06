@@ -39,12 +39,14 @@ module controller(
 	output wire jbralE,
 	output wire cp0readE,
 	//mem stage
+	input wire stallM,
 	input wire flushM,
 	output wire memtoregM,memwriteM,
 				regwriteM,
 	output wire cp0weM,
 	output wire memreadM,
 	//write back stage
+	input wire stallW,
 	input wire flushW,
 	output wire memtoregW,regwriteW,
 	output cp0weW
@@ -105,13 +107,13 @@ module controller(
 		{memtoregD,memwriteD,alusrcD,regdstD,regwriteD,saD,alucontrolD,hilowirteD,jalrD,jbralD,cp0weD,cp0readD,eretD, memreadD},	
 		{memtoregE,memwriteE,alusrcE,regdstE,regwriteE,saE,alucontrolE,hilowirteE,jalrE,jbralE,cp0weE,cp0readE,eretE, memreadE}
 		);
-	floprc #(32) regM(
-		clk,rst,flushM,
+	flopenrc #(32) regM(
+		clk,rst,~stallM,flushM,
 		{memtoregE,memwriteE,regwriteE,cp0weE, memreadE},
 		{memtoregM,memwriteM,regwriteM,cp0weM, memreadM}
 		);
-	floprc #(32) regW(
-		clk,rst,flushW,
+	flopenrc #(32) regW(
+		clk,rst,~stallW,flushW,
 		{memtoregM,regwriteM,cp0weM},
 		{memtoregW,regwriteW,cp0weW}
 		);

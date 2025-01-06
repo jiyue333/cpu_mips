@@ -6,10 +6,7 @@ module d_sram_to_sram_like(
     output wire [31:0] data_sram_rdata,
     input wire [3:0] data_sram_wen,
     input wire [31:0] data_sram_wdata,
-
-
     output wire d_stall,
-    input wire longest_stall,
 
     //sram like
     output wire data_req,               //request
@@ -20,9 +17,9 @@ module d_sram_to_sram_like(
 
     input wire [31:0] data_rdata,       //read data
     input wire data_addr_ok,            
-    input wire data_data_ok
+    input wire data_data_ok,
 
-
+    input wire longest_stall
 );
     reg addr_rcv;      //地址握手成功
     reg do_finish;     //读写事务结束
