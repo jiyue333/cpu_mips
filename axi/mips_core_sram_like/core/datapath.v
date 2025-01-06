@@ -19,15 +19,19 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-`include "../utils/defines2.vh"
+`include "./utils/defines2.vh"
 
 
 module datapath(
 	input wire clk,rst,
 	input wire [5:0]ext_int,
+	input wire instrStall,
+	input wire dataStall,
+	output wire longest_stall,
 	//fetch stage
 	output wire[31:0] pcF,
 	input wire[31:0] instrF,
+	output wire instr_enF,
 	//decode stage
 	input wire pcsrcD,branchD,
 	input wire jumpD,
@@ -56,11 +60,13 @@ module datapath(
 	output wire[3:0] selectM,
 	input wire cp0weM,
 	output wire flushM,
+	output wire stallM,
 	//writeback stage
 	input wire memtoregW,
 	input wire regwriteW,
 	input wire cp0weW,
 	output wire flushW,
+	output wire stallW,
 
 	//for debug
     output [31:0] debug_wb_pc     ,
@@ -72,12 +78,14 @@ module datapath(
 //----------------------------------------------for debug begin----------------------------------------------------	
     wire [31:0] pcW;
    	wire [31:0] instrE,instrM,instrW;
-    flopr #(32) rinstrE(clk,rst,instrD,instrE);
-    flopr #(32) rinstrM(clk,rst,instrE,instrM);
-    flopr #(32) rinstrW(clk,rst,instrM,instrW); 
-    flopr #(32) rpcW(clk,rst,pcM,pcW);
+    flopenrc #(32) rinstrE(clk,rst,~stallE, flushE, instrD,instrE);
+    flopenrc #(32) rinstrM(clk,rst,~stallM, flushM, instrE,instrM);
+    flopenrc #(32) rinstrW(clk,rst,~stallW, flushW, instrM,instrW); 
+    flopenrc #(32) rpcW(clk,rst,~stallW, flushW, pcM,pcW);
+
+
     assign debug_wb_pc          = pcW;
-    assign debug_wb_rf_wen      = {4{regwriteW}};
+    assign debug_wb_rf_wen      = {4{regwriteW & ~stallW}};
     assign debug_wb_rf_wnum     = writeregW;
     assign debug_wb_rf_wdata    = resultW;
 //----------------------------------------------for debug end----------------------------------------------------
@@ -138,7 +146,7 @@ module datapath(
 		// Fetch stage
 		.stallF(stallF),
 		.flushF(flushF),
-		
+		.instrStall(instrStall),	
 		// Decode stage
 		.rsD(rsD),
 		.rtD(rtD),
@@ -165,6 +173,7 @@ module datapath(
 		.forwardcp0E(forwardcp0E),
 		
 		// Memory stage
+		.dataStall(dataStall),
 		.rdM(rdM),
 		.writeregM(writeregM),
 		.regwriteM(regwriteM),
@@ -173,11 +182,14 @@ module datapath(
 		.cp0weM(cp0weM),
 		.excepttypeM(excepttypeM),
 		.isexceptM(isexceptM),	
+		.stallM(stallM),
 		// Write back stage
 		.writeregW(writeregW),
 		.regwriteW(regwriteW),
 		.flushW(flushW),
-		.cp0weW(cp0weW)
+		.cp0weW(cp0weW),
+		.longest_stall(longest_stall),
+		.stallW(stallW)
 	);
 
 	//next PC logic (operates in fetch an decode)
@@ -197,6 +209,8 @@ module datapath(
 	adder pcadd1(pcF,32'b100,pcplus4F);
 	assign instadelF = (pcF[1:0] != 2'b00);
 	assign is_in_delayslotF = jumpD|jalrD|jrD|jbralD|branchD;
+	assign instr_enF = ~isexceptM;
+
 	//decode stage
 	flopenrc #(32) r1D(clk,rst,~stallD,flushD,pcplus4F,pcplus4D);
 	flopenrc #(32) r2D(clk,rst,~stallD,flushD,instrF,instrD);
@@ -242,25 +256,27 @@ module datapath(
 	mux3 #(5) wrmux(rtE,rdE,5'd31,{jalrE, regdstE},writeregE);	
  	mux2 #(32) forwardcp0mux(cp0dataE,aluoutM,forwardcp0E,cp0data2E);
 	//mem stage
-	floprc #(32) r1M(clk,rst,flushM,srcb2E,writedataM);
-	floprc #(32) r2M(clk,rst,flushM,aluoutE,aluoutM);
-	floprc #(5) r3M(clk,rst,flushM,writeregE,writeregM);
-	floprc #(6) r4M(clk,rst,flushM, opE,opM);
-	flopenrc #(5) r6M(clk,rst,~0,flushM,rdE,rdM);
-    flopenrc #(6) r7M(clk,rst,~0,flushM,{instadelE,syscallE,breakE,eretE,invalidE,overflowE},{instadelM,syscallM,breakM,eretM,invalidM,overflowM});
-    flopenrc #(1) r8M(clk,rst,~0,flushM,is_in_delayslotE,is_in_delayslotM);
-    flopenrc #(32) r9M(clk,rst,~0,flushM,pcE,pcM);
+	flopenrc #(32) r1M(clk,rst,~stallM,flushM,srcb2E,writedataM);
+	flopenrc #(32) r2M(clk,rst,~stallM,flushM,aluoutE,aluoutM);
+	flopenrc #(5) r3M(clk,rst,~stallM,flushM,writeregE,writeregM);
+	flopenrc #(6) r4M(clk,rst,~stallM,flushM, opE,opM);
+	flopenrc #(5) r6M(clk,rst,~stallM,flushM,rdE,rdM);
+	flopenrc #(6) r7M(clk,rst,~stallM,flushM,{instadelE,syscallE,breakE,eretE,invalidE,overflowE},{instadelM,syscallM,breakM,eretM,invalidM,overflowM});
+	flopenrc #(1) r8M(clk,rst,~stallM,flushM,is_in_delayslotE,is_in_delayslotM);
+	flopenrc #(32) r9M(clk,rst,~stallM,flushM,pcE,pcM);
 	mem_ctrl mem_ctrl(opM,aluoutM[1:0],readdataM,writedataM,readdata_o,writedata_o,selectM, adelM, adesM);
 	assign bad_addrM = (instadelM)? pcM:aluoutM;
     assign mem_enM = (~adelM & ~adesM);
 
+	wire [31:0] current_inst_addr;
+	flopr #(32) except_inst_addr(clk,rst,pcE,current_inst_addr);	
 	exceptdec exception(clk, rst,ext_int,cp0weM,rdM,aluoutM,adelM,adesM,instadelM,syscallM,breakM,eretM,invalidM,overflowM,status_oM,cause_oM,epc_oM,excepttypeM,newpcM,isexceptM);
- 	cp0_reg CP0(clk,rst,cp0weM,rdM,rdE,aluoutM,6'b000000,excepttypeM,pcM,is_in_delayslotM,
+ 	cp0_reg CP0(clk,rst,cp0weM,rdM,rdE,aluoutM,6'b000000,excepttypeM,current_inst_addr,is_in_delayslotM,
     bad_addrM,cp0dataE,count_oM,compare_oM,status_oM,cause_oM,epc_oM,config_oM,prid_oM,badvaddrM);
 
 	//writeback stage
-	floprc #(32) r1W(clk,rst,flushW,aluoutM,aluoutW);
-	floprc #(32) r2W(clk,rst,flushW,readdata_o,readdataW);
-	floprc #(5) r3W(clk,rst,flushW,writeregM,writeregW);
+	flopenrc #(32) r1W(clk,rst,~stallM,flushW,aluoutM,aluoutW);
+	flopenrc #(32) r2W(clk,rst,~stallM,flushW,readdata_o,readdataW);
+	flopenrc #(5) r3W(clk,rst,~stallM,flushW,writeregM,writeregW);
 	mux2 #(32) resmux(aluoutW,readdataW,memtoregW,resultW);
 endmodule

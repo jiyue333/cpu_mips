@@ -1,4 +1,4 @@
-`include "../utils/defines2.vh"
+`include "../core/utils/defines2.vh"
 
 module mem_ctrl(
     input wire[5:0] op,

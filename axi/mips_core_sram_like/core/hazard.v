@@ -24,7 +24,7 @@ module hazard (
     // Fetch stage
     output wire stallF,
     output wire flushF,
-    
+	input wire instrStall,
     // Decode stage
     input wire [4:0] rsD,
     input wire [4:0] rtD,
@@ -51,6 +51,7 @@ module hazard (
     output wire forwardcp0E,
     
     // Memory stage
+	input wire dataStall,
     input wire [4:0] rdM,
     input wire [4:0] writeregM,
     input wire regwriteM,
@@ -58,12 +59,15 @@ module hazard (
     output wire flushM,
     input wire cp0weM,
     input wire [31:0] excepttypeM,
-	input isexceptM,
+	input wire isexceptM,
+	output wire stallM,
     // Write back stage
     input wire [4:0] writeregW,
     input wire regwriteW,
     output wire flushW,
-    input wire cp0weW
+    input wire cp0weW,
+	output wire longest_stall,
+	output wire stallW
 );
 
 	wire lwstallD,branchstallD;
@@ -108,11 +112,18 @@ module hazard (
 				(writeregE == rsD | writeregE == rtD) |
 				memtoregM &
 				(writeregM == rsD | writeregM == rtD));
-	assign stallD = lwstallD | branchstallD | div_stallE;
+	assign longest_stall = instrStall | dataStall | div_stallE;
+
+
+	assign stallD = lwstallD | branchstallD | longest_stall;
 	// todo ~isexceptM & stallD
-	assign stallF = stallD & ~isexceptM;
-	assign stallE = div_stallE;
+
+	assign stallF = (stallD & ~isexceptM);
+	assign stallE = longest_stall; 
+	assign stallM = longest_stall;
+	assign stallW = longest_stall & ~isexceptM;
 	//stalling D stalls all previous stages
+
     assign flushF = isexceptM;
     assign flushD = isexceptM;
 	assign flushE = isexceptM | lwstallD | branchstallD;
