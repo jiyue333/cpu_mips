@@ -62,7 +62,7 @@ module aludec(
 					`MULTU:		alucontrol = `MULTU_CONTROL;
 					//跳转指令      
 					`JALR:      alucontrol = `ADDU_CONTROL;
-					default:  alucontrol   = 5'b00000;
+					default:  	alucontrol = 5'b00000;
 				endcase
 			//逻辑运算
 			`ANDI:		alucontrol = `AND_CONTROL;
@@ -89,9 +89,9 @@ module aludec(
                 case(rs)
                     `MTC0:alucontrol<=`MTC0_CONTROL;
                     `MFC0:alucontrol<=`MFC0_CONTROL;
+					default: alucontrol <= 5'b00000;
                 endcase
-			 default: 	alucontrol<=`AND_CONTROL;
+			 default: 	alucontrol<=5'b00000;
 		endcase
-	
 	end
 endmodule
