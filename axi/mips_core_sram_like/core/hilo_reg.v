@@ -26,7 +26,7 @@ module hilo_reg(
 	output wire[63:0] hilo_out //读出值
     );
 	reg [63:0] hilo_reg; //HILO寄存器
-	always @(negedge clk) begin
+	always @(posedge clk) begin
         if(rst)begin
             hilo_reg <= 0;
         end
